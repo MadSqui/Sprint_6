@@ -6,9 +6,6 @@ from data import Data
 import allure
 
 
-def check_browser_window(driver):
-    if not driver.window_handles:
-        raise Exception("No browser windows available")
 
 class BasePage:
     def __init__(self, driver):
@@ -16,14 +13,24 @@ class BasePage:
 
     @allure.step('Ожидание элемента')
     def wait_for_element(self, locator, timeout=Data.WAIT_TIME) -> WebElement:
-        check_browser_window(self.driver)
         return WebDriverWait(self.driver, timeout).until(
             EC.presence_of_element_located(locator)
         )
 
+    @allure.step('Ожидание кликабельности элемента')
+    def wait_for_element_to_be_clickable(self, locator, timeout=30) -> WebElement:
+        return WebDriverWait(self.driver, timeout).until(
+            EC.element_to_be_clickable(locator)
+        )
+
+    @allure.step('Ожидание видимости элемента')
+    def wait_for_element_to_be_visible(self, locator, timeout=30) -> WebElement:
+        return WebDriverWait(self.driver, timeout).until(
+            EC.visibility_of_element_located(locator)
+        )
+
     @allure.step('Загружаем страницу')
     def get_url(self, url):
-        check_browser_window(self.driver)
         self.driver.get(url)
         try:
             WebDriverWait(self.driver, Data.WAIT_TIME).until(
@@ -34,12 +41,7 @@ class BasePage:
 
     @allure.step('Поиск элемента с ожиданием')
     def find_element_and_wait(self, locator):
-        check_browser_window(self.driver)
-        try:
-            WebDriverWait(self.driver, Data.WAIT_TIME).until(EC.visibility_of_element_located(locator))
-            return self.driver.find_element(*locator)
-        except Exception as e:
-            raise Exception(f"Element not found or not visible: {locator}. Error: {e}")
+        return self.wait_for_element_to_be_visible(locator)
 
     @allure.step('Клик на элемент')
     def click_on_element(self, locator):
@@ -62,8 +64,7 @@ class BasePage:
 
     @allure.step('Скролл до элемента')
     def scroll_page(self, locator):
-        element = self.find_element_and_wait(locator)
-        self.driver.execute_script("arguments[0].scrollIntoView();", element)
+        self.scroll_to_element(locator)
 
     @allure.step('Форматирование локатора')
     def reformate_locator(self, locator_template, value):

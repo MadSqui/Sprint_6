@@ -18,7 +18,7 @@ class MainPage(BasePage):
     @allure.step('Скролл страницы до последнего вопроса')
     def scroll_page_to_last_question(self):
         last_question = self.wait_for_element(MainPageLocators.QUESTION_LAST)
-        self.driver.execute_script("arguments[0].scrollIntoView();", last_question)
+        self.scroll_page(last_question)
 
     @allure.step('Кликаем на вопрос')
     def click_on_question(self, number):
